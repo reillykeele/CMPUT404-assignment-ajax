@@ -33,13 +33,50 @@ var H = canvas.height = window.innerHeight-50;
 
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState==4) {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function () {
+        if (req.readyState==4) {
             try {
-                if (xhr.status==200) {
+                if (req.status==200) {
+                    //XXX: parse some JSON from the request!
+                    //XXX: Pass the data to the callback!                          
+                    let data = JSON.parse(req.responseText);            
+                    if (data != null)
+                        callback(data);
+                    else 
+                        callback();
+                }
+            } 
+            catch(e) {
+                alert('Error: ' + e.name);                
+                console.log(e);
+            }
+        }
+    };
+    //XXX: POST to a URL
+    req.open('POST', '../' + url);
+
+    //XXX: set the mimetype and the accept headers!
+    // Remember to use application/json !
+    req.setRequestHeader('Accept', 'application/json');
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.send(JSON.stringify(objects));
+}
+
+function sendGet(url, callback) {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function () {
+        if (req.readyState==4) {
+            try {
+                if (req.status==200) {
                     //XXX: parse some JSON from the request!
                     //XXX: Pass the data to the callback!
+                    // alert(req.responseText);
+                    let data = JSON.parse(req.responseText);
+                    if (data != null)
+                        callback(data);
+                    else 
+                        callback();
                 }
             } 
             catch(e) {
@@ -47,9 +84,10 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
-    //XXX: POST to a URL
-    //XXX: set the mimetype and the accept headers!
-    // Remember to use application/json !
+    //XXX: GET to a URL    
+    req.open('GET', '../' + url);
+    req.setRequestHeader('Accept', 'application/json');
+    req.send();
 }
 
 
@@ -101,7 +139,7 @@ function renderFrame() {
 var drawNext = true;
 
 // Signals that there's something to be drawn
-function drawNextFrame() {
+function drawNextFrame() {    
     drawNext = true;
 }
 
@@ -135,10 +173,9 @@ function getPosition(e) {
 
 
 function addEntity(entity, data) {
-    world[entity] = data;
-    drawNextFrame(); // (but should we?)
+    world[entity] = data;    
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-
+    sendJSONXMLHTTPRequest('entity/' + entity, data);    
 }
 
 var counter = 0;
@@ -262,11 +299,12 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    drawFrame();
+    sendGet('world', drawFrame);
+    // drawFrame();
 }
 
 // 30 frames per second
-setInterval( update, 1000/30.0);
+setInterval( update, 1000/1.0);
 
 
 
