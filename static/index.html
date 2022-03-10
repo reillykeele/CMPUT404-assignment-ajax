@@ -31,6 +31,11 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
+var img0 = new Image();
+img0.src = '../static/pacman.png';
+var img1 = new Image();
+img1.src = '../static/ghost.webp';
+var images = [img0, img1];
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var req = new XMLHttpRequest();
@@ -66,7 +71,7 @@ function sendGet(url, callback) {
             try {
                 if (req.status==200) {
                     //XXX: parse some JSON from the request!
-                    //XXX: Pass the data to the callback!                    
+                    //XXX: Pass the data to the callback!                                   
                     let data = JSON.parse(req.responseText);                    
                     callback(data);                    
                 }
@@ -91,10 +96,22 @@ function drawCircle(context,entity) {
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
+        fillStyle = entity["colour"];        
+        strokeStyle = fillStyle;        
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        fill();
         stroke();                                
+    }
+}
+
+function drawImage(context,entity) {
+    with(context) {
+        var index = entity["image"];
+        var x = entity["x"];
+        var y = entity["y"];
+        var w = entity["w"];
+        var h = entity["w"];
+        context.drawImage(images[index], x - w/2, y - h/2, w, h);
     }
 }
 
@@ -110,11 +127,10 @@ function prepEntity(entity) {
 
 function clearFrame() {
     with(context) {
-	moveTo(0,0);
-	fillStyle = "#000";
-	fillRect(0,0,W,H);
+        moveTo(0,0);
+        fillStyle = "#000";
+        fillRect(0,0,W,H);
     }
-
 }
 
 // This actually draws the frame
@@ -122,7 +138,11 @@ function renderFrame() {
     clearFrame();
     for (var key in world) {
         var entity = world[key];
-        drawCircle(context,prepEntity(entity));
+
+        if (typeof entity["image"] !== 'undefined')            
+            drawImage(context,entity);
+        else 
+            drawCircle(context,prepEntity(entity));        
     }
 }
 
@@ -275,16 +295,17 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    //addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'image':0,'w':40,'h':40});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    //addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'image':1,'w':40,'h':40});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour':'white','radius':5});
 });
 
 
@@ -301,7 +322,7 @@ function update() {
 }
 
 // 30 frames per second
-setInterval( update, 1000 / 30.0);
+setInterval( update, 1000);
 
 
 
