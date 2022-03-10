@@ -41,15 +41,11 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
                     //XXX: parse some JSON from the request!
                     //XXX: Pass the data to the callback!                          
                     let data = JSON.parse(req.responseText);            
-                    if (data != null)
-                        callback(data);
-                    else 
-                        callback();
+                    callback(data);
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name);                
-                console.log(e);
+                console.log('Error: ' + e.name + '\n' + e);                          
             }
         }
     };
@@ -70,26 +66,20 @@ function sendGet(url, callback) {
             try {
                 if (req.status==200) {
                     //XXX: parse some JSON from the request!
-                    //XXX: Pass the data to the callback!
-                    // alert(req.responseText);
-                    let data = JSON.parse(req.responseText);
-                    if (data != null)
-                        callback(data);
-                    else 
-                        callback();
+                    //XXX: Pass the data to the callback!                    
+                    let data = JSON.parse(req.responseText);                    
+                    callback(data);                    
                 }
             } 
-            catch(e) {
-                alert('Error: ' + e.name);
+            catch(e) {                
+                console.log('Error: ' + e.name + '\n' + e);
             }
         }
-    };
-    //XXX: GET to a URL    
+    };    
     req.open('GET', '../' + url);
     req.setRequestHeader('Accept', 'application/json');
     req.send();
 }
-
 
 world = {};
 
@@ -175,7 +165,8 @@ function getPosition(e) {
 function addEntity(entity, data) {
     world[entity] = data;    
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-    sendJSONXMLHTTPRequest('entity/' + entity, data);    
+    drawNextFrame();
+    sendJSONXMLHTTPRequest('entity/' + entity, data, (x) => {}); // empty callback
 }
 
 var counter = 0;
@@ -297,14 +288,20 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 });
 
 
+
+function updateWorld(w) {
+    world = w;
+    drawNextFrame();
+    drawFrame();
+}
+
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    sendGet('world', drawFrame);
-    // drawFrame();
+    sendGet('world', updateWorld);    
 }
 
 // 30 frames per second
-setInterval( update, 1000/1.0);
+setInterval( update, 1000);
 
 
 
